@@ -1,0 +1,226 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Shield, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { useAuth } from '../lib/auth';
+import type { UserRole } from '../lib/types';
+
+const ROLES: { value: UserRole; label: string }[] = [
+  { value: 'admin', label: 'Administrador' },
+  { value: 'auditor', label: 'Auditor' },
+  { value: 'cliente', label: 'Cliente' },
+];
+
+export default function RegisterPage() {
+  const navigate = useNavigate();
+  const { signUp } = useAuth();
+
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<UserRole>('cliente');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('A senha deve ter no mínimo 6 caracteres.');
+      return;
+    }
+
+    setLoading(true);
+
+    const { error: authError } = await signUp(email, password, fullName, role);
+
+    if (authError) {
+      setError(authError);
+      setLoading(false);
+      return;
+    }
+
+    navigate('/dashboard');
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Left panel - branding */}
+      <div className="w-full lg:w-1/2 bg-slate-900 flex flex-col items-center justify-center px-8 py-16 lg:py-0">
+        <div className="flex flex-col items-center text-center max-w-md">
+          <div className="w-16 h-16 rounded-2xl bg-teal-600/20 flex items-center justify-center mb-8">
+            <Shield className="w-8 h-8 text-teal-400" />
+          </div>
+          <h1 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+            Diagnóstico de Maturidade de TI
+          </h1>
+          <p className="text-slate-400 text-lg leading-relaxed">
+            Avalie, diagnostique e evolua a maturidade dos processos de TI da sua
+            organização com base em frameworks reconhecidos.
+          </p>
+        </div>
+      </div>
+
+      {/* Right panel - form */}
+      <div className="w-full lg:w-1/2 bg-white flex items-center justify-center px-8 py-16 lg:py-0">
+        <div className="w-full max-w-md">
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Criar conta</h2>
+          <p className="text-slate-500 mb-8">
+            Preencha os dados abaixo para se cadastrar
+          </p>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label
+                htmlFor="fullName"
+                className="block text-sm font-medium text-slate-700 mb-2"
+              >
+                Nome completo
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  id="fullName"
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Seu nome completo"
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-700 mb-2"
+              >
+                E-mail
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-700 mb-2"
+              >
+                Senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-slate-700 mb-2"
+              >
+                Confirmar senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repita a senha"
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-3">
+                Perfil
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {ROLES.map((r) => (
+                  <label
+                    key={r.value}
+                    className={`flex items-center justify-center py-3 px-2 rounded-lg border-2 cursor-pointer text-sm font-medium transition ${
+                      role === r.value
+                        ? 'border-teal-600 bg-teal-50 text-teal-700'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="role"
+                      value={r.value}
+                      checked={role === r.value}
+                      onChange={() => setRole(r.value)}
+                      className="sr-only"
+                    />
+                    {r.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Cadastrando...
+                </>
+              ) : (
+                'Cadastrar'
+              )}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm text-slate-500">
+            Já tem uma conta?{' '}
+            <Link
+              to="/login"
+              className="text-teal-600 hover:text-teal-700 font-semibold transition"
+            >
+              Entrar
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
